@@ -1,0 +1,64 @@
+@import "tailwindcss";
+
+@theme {
+  --color-background: var(--bg);
+  --color-foreground: var(--fg);
+  
+  --color-card: var(--card);
+  --color-card-foreground: var(--card-fg);
+  
+  --color-border: var(--border);
+  --color-input: var(--input);
+  
+  --color-primary: var(--color-amber-500);
+  --color-primary-foreground: var(--color-zinc-950);
+  
+  --color-muted: var(--muted);
+  --color-muted-foreground: var(--muted-fg);
+  
+  --color-accent: var(--accent);
+  --color-accent-foreground: var(--accent-fg);
+}
+
+@layer base {
+  :root {
+    --bg: var(--color-zinc-50);
+    --fg: var(--color-zinc-950);
+    --card: var(--color-white);
+    --card-fg: var(--color-zinc-950);
+    --border: var(--color-zinc-200);
+    --input: var(--color-zinc-200);
+    --muted: var(--color-zinc-100);
+    --muted-fg: var(--color-zinc-500);
+    --accent: var(--color-zinc-100);
+    --accent-fg: var(--color-zinc-900);
+  }
+  
+  .dark {
+    --bg: var(--color-zinc-950);
+    --fg: var(--color-zinc-50);
+    --card: var(--color-zinc-900);
+    --card-fg: var(--color-zinc-50);
+    --border: var(--color-zinc-800);
+    --input: var(--color-zinc-800);
+    --muted: var(--color-zinc-900);
+    --muted-fg: var(--color-zinc-400);
+    --accent: var(--color-zinc-800);
+    --accent-fg: var(--color-zinc-50);
+  }
+
+  body {
+    background-color: var(--color-background);
+    color: var(--color-foreground);
+  }
+}
+
+@layer utilities {
+  .scrollbar-hide::-webkit-scrollbar {
+    display: none;
+  }
+  .scrollbar-hide {
+    -ms-overflow-style: none;
+    scrollbar-width: none;
+  }
+}
