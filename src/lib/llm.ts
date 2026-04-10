@@ -1,6 +1,6 @@
 import { GoogleGenAI } from '@google/genai';
 
-export async function callLLM({ provider, model, messages, tools, system, apiKeys }: any) {
+export async function callLLM({ provider, model, messages, tools, system, apiKeys, onUpdate }: any) {
   if (provider === 'anthropic') {
     const response = await fetch("https://api.anthropic.com/v1/messages", {
       method: "POST",
@@ -15,12 +15,62 @@ export async function callLLM({ provider, model, messages, tools, system, apiKey
         max_tokens: 4096,
         system: system,
         tools: tools,
-        messages: messages
+        messages: messages,
+        stream: true
       })
     });
+    
     if (!response.ok) throw new Error(`Anthropic Error: ${await response.text()}`);
-    const data = await response.json();
-    return data.content;
+    
+    const reader = response.body?.getReader();
+    const decoder = new TextDecoder();
+    let fullText = '';
+    const toolUses: any[] = [];
+    let buffer = '';
+
+    if (reader) {
+      while (true) {
+        const { done, value } = await reader.read();
+        if (done) break;
+        buffer += decoder.decode(value, { stream: true });
+        const lines = buffer.split('\n\n');
+        buffer = lines.pop() || '';
+        
+        for (const line of lines) {
+          if (line.startsWith('data: ')) {
+            const dataStr = line.slice(6);
+            if (dataStr === '[DONE]') continue;
+            try {
+              const data = JSON.parse(dataStr);
+              if (data.type === 'content_block_delta' && data.delta.type === 'text_delta') {
+                fullText += data.delta.text;
+                if (onUpdate) onUpdate(fullText);
+              } else if (data.type === 'content_block_start' && data.content_block.type === 'tool_use') {
+                toolUses.push({
+                  id: data.content_block.id,
+                  name: data.content_block.name,
+                  inputStr: ''
+                });
+              } else if (data.type === 'content_block_delta' && data.delta.type === 'input_json_delta') {
+                toolUses[toolUses.length - 1].inputStr += data.delta.partial_json;
+              }
+            } catch (e) {}
+          }
+        }
+      }
+    }
+    
+    const content = [];
+    if (fullText) content.push({ type: 'text', text: fullText });
+    for (const tu of toolUses) {
+      content.push({
+        type: 'tool_use',
+        id: tu.id,
+        name: tu.name,
+        input: JSON.parse(tu.inputStr || '{}')
+      });
+    }
+    return content;
   } 
   
   if (provider === 'openrouter') {
@@ -77,24 +127,68 @@ export async function callLLM({ provider, model, messages, tools, system, apiKey
         tools: tools.map((t: any) => ({
           type: "function",
           function: { name: t.name, description: t.description, parameters: t.input_schema }
-        }))
+        })),
+        stream: true
       })
     });
+    
     if (!response.ok) throw new Error(`OpenRouter Error: ${await response.text()}`);
-    const data = await response.json();
-    const msg = data.choices[0].message;
+    
+    const reader = response.body?.getReader();
+    const decoder = new TextDecoder();
+    let fullText = '';
+    const toolUses: any[] = [];
+    let buffer = '';
+
+    if (reader) {
+      while (true) {
+        const { done, value } = await reader.read();
+        if (done) break;
+        buffer += decoder.decode(value, { stream: true });
+        const lines = buffer.split('\n\n');
+        buffer = lines.pop() || '';
+        
+        for (const line of lines) {
+          if (line.startsWith('data: ')) {
+            const dataStr = line.slice(6);
+            if (dataStr === '[DONE]') continue;
+            try {
+              const data = JSON.parse(dataStr);
+              const delta = data.choices[0]?.delta;
+              if (!delta) continue;
+              
+              if (delta.content) {
+                fullText += delta.content;
+                if (onUpdate) onUpdate(fullText);
+              }
+              if (delta.tool_calls) {
+                for (const tc of delta.tool_calls) {
+                  if (tc.id) {
+                    toolUses.push({
+                      id: tc.id,
+                      name: tc.function.name,
+                      inputStr: tc.function.arguments || ''
+                    });
+                  } else if (tc.function?.arguments) {
+                    toolUses[toolUses.length - 1].inputStr += tc.function.arguments;
+                  }
+                }
+              }
+            } catch (e) {}
+          }
+        }
+      }
+    }
     
     const content = [];
-    if (msg.content) content.push({ type: 'text', text: msg.content });
-    if (msg.tool_calls) {
-      for (const tc of msg.tool_calls) {
-        content.push({
-          type: 'tool_use',
-          id: tc.id,
-          name: tc.function.name,
-          input: JSON.parse(tc.function.arguments)
-        });
-      }
+    if (fullText) content.push({ type: 'text', text: fullText });
+    for (const tu of toolUses) {
+      content.push({
+        type: 'tool_use',
+        id: tu.id,
+        name: tu.name,
+        input: JSON.parse(tu.inputStr || '{}')
+      });
     }
     return content;
   }
@@ -146,7 +240,7 @@ export async function callLLM({ provider, model, messages, tools, system, apiKey
       }
     }
 
-    const response = await ai.models.generateContent({
+    const responseStream = await ai.models.generateContentStream({
       model: model || 'gemini-2.5-pro',
       contents: contents,
       config: {
@@ -156,18 +250,34 @@ export async function callLLM({ provider, model, messages, tools, system, apiKey
       }
     });
 
-    const content = [];
-    if (response.text) content.push({ type: 'text', text: response.text });
-    if (response.functionCalls && response.functionCalls.length > 0) {
-      for (const fc of response.functionCalls) {
-        const id = `call_${Math.random().toString(36).substr(2, 9)}`;
-        content.push({
-          type: 'tool_use',
-          id: id,
-          name: fc.name,
-          input: fc.args
-        });
+    let fullText = '';
+    const toolUses: any[] = [];
+
+    for await (const chunk of responseStream) {
+      if (chunk.text) {
+        fullText += chunk.text;
+        if (onUpdate) onUpdate(fullText);
       }
+      if (chunk.functionCalls && chunk.functionCalls.length > 0) {
+        for (const fc of chunk.functionCalls) {
+          toolUses.push({
+            id: `call_${Math.random().toString(36).substr(2, 9)}`,
+            name: fc.name,
+            input: fc.args
+          });
+        }
+      }
+    }
+
+    const content = [];
+    if (fullText) content.push({ type: 'text', text: fullText });
+    for (const tu of toolUses) {
+      content.push({
+        type: 'tool_use',
+        id: tu.id,
+        name: tu.name,
+        input: tu.input
+      });
     }
     return content;
   }

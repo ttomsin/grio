@@ -4,6 +4,7 @@ import { GRIO_TOOLS } from '../lib/tools';
 import { useGriot } from './useGriot';
 import { useBoard } from './useBoard';
 import { callLLM } from '../lib/llm';
+import { ToolExecutors } from '../lib/registry';
 
 export type Message = {
   role: 'user' | 'assistant';
@@ -25,8 +26,12 @@ export function useAgent(activeSkills: any[], provider: string, model: string, a
 
     try {
       await runAgentLoop(newMessages);
-    } catch (error) {
+    } catch (error: any) {
       console.error("Agent error:", error);
+      setMessages((prev) => [
+        ...prev,
+        { role: 'assistant', content: [{ type: 'text', text: `Sorry, I encountered an error: ${error.message}` }] }
+      ]);
     } finally {
       setIsLoading(false);
       setActiveToolCall(null);
@@ -37,13 +42,31 @@ export function useAgent(activeSkills: any[], provider: string, model: string, a
     let loopMessages = [...currentMessages];
     
     while (true) {
+      let streamingMessageIndex = loopMessages.length;
+      
+      // Keep only the last 30 messages to prevent context window overflow over long conversations
+      let messagesToSend = loopMessages;
+      if (messagesToSend.length > 30) {
+        messagesToSend = messagesToSend.slice(messagesToSend.length - 30);
+      }
+      
       const content = await callLLM({
         provider,
         model,
-        messages: loopMessages,
+        messages: messagesToSend,
         tools: GRIO_TOOLS,
         system: buildSystemPrompt(activeSkills),
-        apiKeys
+        apiKeys,
+        onUpdate: (text: string) => {
+          setMessages((prev) => {
+            const next = [...prev];
+            next[streamingMessageIndex] = {
+              role: 'assistant',
+              content: [{ type: 'text', text }]
+            };
+            return next;
+          });
+        }
       });
 
       loopMessages.push({ role: 'assistant', content: content });
@@ -64,10 +87,18 @@ export function useAgent(activeSkills: any[], provider: string, model: string, a
         } catch (e: any) {
           result = { error: e.message };
         }
+        
+        let resultStr = typeof result === 'string' ? result : JSON.stringify(result);
+        
+        // Truncate massive tool results to prevent token limit errors
+        if (resultStr.length > 40000) {
+          resultStr = resultStr.substring(0, 40000) + '\n\n...[TRUNCATED DUE TO LENGTH. IF YOU NEED MORE DATA, REFINE YOUR SEARCH QUERY OR PAGINATE]';
+        }
+        
         toolResults.push({
           type: 'tool_result',
           tool_use_id: toolUse.id,
-          content: typeof result === 'string' ? result : JSON.stringify(result)
+          content: resultStr
         });
       }
 
@@ -77,40 +108,11 @@ export function useAgent(activeSkills: any[], provider: string, model: string, a
   };
 
   const executeTool = async (name: string, input: any) => {
-    switch (name) {
-      case 'query_griot':
-        return await queryGriot(input);
-      case 'open_board':
-        board.openBoard(input);
-        return { success: true };
-      case 'update_board':
-        board.updateBoard(input);
-        return { success: true };
-      case 'manage_skills':
-        setActiveSkillIds((prev: string[]) => {
-          let next = [...prev];
-          if (input.enable_skills) {
-            input.enable_skills.forEach((s: string) => {
-              if (!next.includes(s)) next.push(s);
-            });
-          }
-          if (input.disable_skills) {
-            next = next.filter(s => !input.disable_skills.includes(s) || s === 'records_explorer');
-          }
-          return next;
-        });
-        return { success: true };
-      case 'render_chart':
-      case 'render_thread':
-      case 'render_comparison':
-      case 'render_timeline':
-      case 'render_lesson':
-      case 'build_dataset':
-        // These are UI rendering tools. We just acknowledge them so the agent knows it worked.
-        return { success: true, rendered: true };
-      default:
-        throw new Error(`Unknown tool: ${name}`);
+    const executor = ToolExecutors[name];
+    if (executor) {
+      return await executor(input, { queryGriot, board, setActiveSkillIds });
     }
+    throw new Error(`Unknown tool: ${name}`);
   };
 
   return { messages, sendMessage, isLoading, activeToolCall, board };

@@ -18,48 +18,53 @@ export function ChartRender({ data }: { data: any }) {
     return item;
   });
 
+  const getLabel = (label: string) => {
+    if (!label || label.toLowerCase() === 'records' || label.toLowerCase() === 'value') return 'Discussions';
+    return label;
+  };
+
   const renderChart = () => {
     switch (chart_type) {
       case 'bar':
         return (
           <BarChart data={transformedData}>
-            <CartesianGrid strokeDasharray="3 3" stroke="#27272a" vertical={false} />
-            <XAxis dataKey="name" stroke="#a1a1aa" fontSize={12} tickLine={false} axisLine={false} />
-            <YAxis stroke="#a1a1aa" fontSize={12} tickLine={false} axisLine={false} />
+            <CartesianGrid strokeDasharray="3 3" stroke="var(--color-border)" vertical={false} />
+            <XAxis dataKey="name" stroke="var(--color-muted-foreground)" fontSize={12} tickLine={false} axisLine={false} />
+            <YAxis stroke="var(--color-muted-foreground)" fontSize={12} tickLine={false} axisLine={false} />
             <Tooltip 
-              contentStyle={{ backgroundColor: '#18181b', borderColor: '#27272a', color: '#fafafa' }}
+              contentStyle={{ backgroundColor: 'var(--color-card)', borderColor: 'var(--color-border)', color: 'var(--color-card-foreground)' }}
               itemStyle={{ color: '#f59e0b' }}
             />
             {chartData.datasets.map((ds: any, i: number) => (
-              <Bar key={i} dataKey={`val${i}`} name={ds.label || 'Value'} fill={COLORS[i % COLORS.length]} radius={[4, 4, 0, 0]} />
+              <Bar key={i} dataKey={`val${i}`} name={getLabel(ds.label)} fill={COLORS[i % COLORS.length]} radius={[4, 4, 0, 0]} />
             ))}
           </BarChart>
         );
       case 'line':
         return (
           <LineChart data={transformedData}>
-            <CartesianGrid strokeDasharray="3 3" stroke="#27272a" vertical={false} />
-            <XAxis dataKey="name" stroke="#a1a1aa" fontSize={12} tickLine={false} axisLine={false} />
-            <YAxis stroke="#a1a1aa" fontSize={12} tickLine={false} axisLine={false} />
+            <CartesianGrid strokeDasharray="3 3" stroke="var(--color-border)" vertical={false} />
+            <XAxis dataKey="name" stroke="var(--color-muted-foreground)" fontSize={12} tickLine={false} axisLine={false} />
+            <YAxis stroke="var(--color-muted-foreground)" fontSize={12} tickLine={false} axisLine={false} />
             <Tooltip 
-              contentStyle={{ backgroundColor: '#18181b', borderColor: '#27272a', color: '#fafafa' }}
+              contentStyle={{ backgroundColor: 'var(--color-card)', borderColor: 'var(--color-border)', color: 'var(--color-card-foreground)' }}
             />
             {chartData.datasets.map((ds: any, i: number) => (
-              <Line key={i} type="monotone" dataKey={`val${i}`} name={ds.label || 'Value'} stroke={COLORS[i % COLORS.length]} strokeWidth={2} dot={{ r: 4, fill: '#18181b', strokeWidth: 2 }} />
+              <Line key={i} type="monotone" dataKey={`val${i}`} name={getLabel(ds.label)} stroke={COLORS[i % COLORS.length]} strokeWidth={2} dot={{ r: 4, fill: 'var(--color-card)', strokeWidth: 2 }} />
             ))}
           </LineChart>
         );
       case 'area':
         return (
           <AreaChart data={transformedData}>
-            <CartesianGrid strokeDasharray="3 3" stroke="#27272a" vertical={false} />
-            <XAxis dataKey="name" stroke="#a1a1aa" fontSize={12} tickLine={false} axisLine={false} />
-            <YAxis stroke="#a1a1aa" fontSize={12} tickLine={false} axisLine={false} />
+            <CartesianGrid strokeDasharray="3 3" stroke="var(--color-border)" vertical={false} />
+            <XAxis dataKey="name" stroke="var(--color-muted-foreground)" fontSize={12} tickLine={false} axisLine={false} />
+            <YAxis stroke="var(--color-muted-foreground)" fontSize={12} tickLine={false} axisLine={false} />
             <Tooltip 
-              contentStyle={{ backgroundColor: '#18181b', borderColor: '#27272a', color: '#fafafa' }}
+              contentStyle={{ backgroundColor: 'var(--color-card)', borderColor: 'var(--color-border)', color: 'var(--color-card-foreground)' }}
             />
             {chartData.datasets.map((ds: any, i: number) => (
-              <Area key={i} type="monotone" dataKey={`val${i}`} name={ds.label || 'Value'} fill={COLORS[i % COLORS.length]} stroke={COLORS[i % COLORS.length]} fillOpacity={0.3} />
+              <Area key={i} type="monotone" dataKey={`val${i}`} name={getLabel(ds.label)} fill={COLORS[i % COLORS.length]} stroke={COLORS[i % COLORS.length]} fillOpacity={0.3} />
             ))}
           </AreaChart>
         );
@@ -72,7 +77,7 @@ export function ChartRender({ data }: { data: any }) {
         return (
           <PieChart>
             <Tooltip 
-              contentStyle={{ backgroundColor: '#18181b', borderColor: '#27272a', color: '#fafafa' }}
+              contentStyle={{ backgroundColor: 'var(--color-card)', borderColor: 'var(--color-border)', color: 'var(--color-card-foreground)' }}
             />
             <Pie data={pieData} dataKey="value" nameKey="name" cx="50%" cy="50%" outerRadius={80} innerRadius={40} paddingAngle={2}>
               {pieData.map((entry: any, index: number) => (
@@ -98,7 +103,7 @@ export function ChartRender({ data }: { data: any }) {
           </ResponsiveContainer>
         </div>
         {insight && (
-          <p className="text-sm text-zinc-400 mt-4 pt-4 border-t border-zinc-800/50">
+          <p className="text-sm text-muted-foreground mt-4 pt-4 border-t border-border">
             {insight}
           </p>
         )}

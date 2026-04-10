@@ -31,7 +31,7 @@ export function LessonRender({ data }: { data: any }) {
   const isFinished = currentIndex === content.length - 1 && showExplanation;
 
   return (
-    <Card className="my-4 border-amber-500/20 bg-zinc-900/80">
+    <Card className="my-4 border-border bg-card">
       <CardHeader className="pb-4">
         <div className="flex items-center justify-between mb-2">
           <CardTitle className="text-base text-amber-500">{title || "Lesson"}</CardTitle>
@@ -39,7 +39,7 @@ export function LessonRender({ data }: { data: any }) {
             {content.map((_: any, i: number) => (
               <div 
                 key={i} 
-                className={`w-2 h-2 rounded-full ${i === currentIndex ? 'bg-amber-500' : i < currentIndex ? 'bg-amber-500/50' : 'bg-zinc-800'}`} 
+                className={`w-2 h-2 rounded-full ${i === currentIndex ? 'bg-amber-500' : i < currentIndex ? 'bg-amber-500/50' : 'bg-muted'}`} 
               />
             ))}
           </div>
@@ -47,11 +47,11 @@ export function LessonRender({ data }: { data: any }) {
       </CardHeader>
       <CardContent>
         <div className="mb-6">
-          <h3 className="text-xl font-medium text-zinc-50 mb-6">{currentItem.prompt}</h3>
+          <h3 className="text-xl font-medium text-foreground mb-6">{currentItem.prompt}</h3>
           
           <div className="space-y-3">
             {currentItem.options?.map((option: string, i: number) => {
-              let btnClass = "w-full justify-start text-left h-auto py-3 px-4 border-zinc-800 bg-zinc-950 hover:bg-zinc-800 hover:border-amber-500/50 transition-all";
+              let btnClass = "w-full justify-start text-left h-auto py-3 px-4 border-border bg-background hover:bg-muted hover:border-amber-500/50 transition-all text-foreground";
               
               if (showExplanation) {
                 if (option === currentItem.answer) {
@@ -59,7 +59,7 @@ export function LessonRender({ data }: { data: any }) {
                 } else if (option === selectedOption) {
                   btnClass = "w-full justify-start text-left h-auto py-3 px-4 border-red-500/50 bg-red-500/10 text-red-500";
                 } else {
-                  btnClass = "w-full justify-start text-left h-auto py-3 px-4 border-zinc-800 bg-zinc-950 opacity-50";
+                  btnClass = "w-full justify-start text-left h-auto py-3 px-4 border-border bg-background opacity-50 text-foreground";
                 }
               }
 
@@ -83,15 +83,15 @@ export function LessonRender({ data }: { data: any }) {
         </div>
 
         {showExplanation && (
-          <div className="mt-6 p-4 rounded-lg bg-zinc-950 border border-zinc-800 animate-in fade-in slide-in-from-bottom-2">
-            <p className="text-sm text-zinc-300 mb-4">{currentItem.explanation}</p>
+          <div className="mt-6 p-4 rounded-lg bg-background border border-border animate-in fade-in slide-in-from-bottom-2">
+            <p className="text-sm text-muted-foreground mb-4">{currentItem.explanation}</p>
             
             {!isFinished ? (
-              <Button onClick={handleNext} className="w-full bg-amber-500 text-zinc-950 hover:bg-amber-500/90">
+              <Button onClick={handleNext} className="w-full bg-amber-500 text-primary-foreground hover:bg-amber-500/90">
                 Next <ChevronRight className="w-4 h-4 ml-1" />
               </Button>
             ) : (
-              <Button disabled className="w-full bg-zinc-800 text-zinc-500">
+              <Button disabled className="w-full bg-muted text-muted-foreground">
                 Lesson Complete
               </Button>
             )}

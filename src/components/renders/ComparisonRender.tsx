@@ -9,14 +9,14 @@ export function ComparisonRender({ data }: { data: any }) {
   return (
     <Card className="my-4 overflow-hidden">
       {title && (
-        <CardHeader className="pb-3 border-b border-zinc-800 bg-zinc-900/50">
+        <CardHeader className="pb-3 border-b border-border bg-muted/50">
           <CardTitle className="text-base">{title}</CardTitle>
         </CardHeader>
       )}
       <CardContent className="p-0">
         <div className="overflow-x-auto">
           <table className="w-full text-sm text-left">
-            <thead className="text-xs text-zinc-400 bg-zinc-900/80 border-b border-zinc-800">
+            <thead className="text-xs text-muted-foreground bg-muted border-b border-border">
               <tr>
                 <th className="px-4 py-3 font-medium w-1/3">Metric</th>
                 {items.map((item: string, i: number) => (
@@ -24,7 +24,7 @@ export function ComparisonRender({ data }: { data: any }) {
                 ))}
               </tr>
             </thead>
-            <tbody className="divide-y divide-zinc-800/50">
+            <tbody className="divide-y divide-border">
               {metrics.map((metric: any, i: number) => {
                 // Find the best value to highlight if it's a number
                 let bestIndex = -1;
@@ -35,8 +35,8 @@ export function ComparisonRender({ data }: { data: any }) {
                 }
 
                 return (
-                  <tr key={i} className="hover:bg-zinc-900/30 transition-colors">
-                    <td className="px-4 py-3 font-medium text-zinc-300">{metric.label}</td>
+                  <tr key={i} className="hover:bg-muted/50 transition-colors">
+                    <td className="px-4 py-3 font-medium text-foreground">{metric.label}</td>
                     {metric.values.map((val: any, j: number) => {
                       const isBest = j === bestIndex;
                       
@@ -48,8 +48,8 @@ export function ComparisonRender({ data }: { data: any }) {
                         return (
                           <td key={j} className="px-4 py-3">
                             <div className="flex items-center gap-2">
-                              <span className={isBest ? "text-amber-500 font-medium" : "text-zinc-300"}>{val}</span>
-                              <div className="flex-1 h-1.5 bg-zinc-800 rounded-full overflow-hidden">
+                              <span className={isBest ? "text-amber-500 font-medium" : "text-foreground"}>{val}</span>
+                              <div className="flex-1 h-1.5 bg-border rounded-full overflow-hidden">
                                 <div className="h-full bg-amber-500 rounded-full" style={{ width: `${pct}%` }} />
                               </div>
                             </div>
@@ -58,7 +58,7 @@ export function ComparisonRender({ data }: { data: any }) {
                       }
 
                       return (
-                        <td key={j} className={`px-4 py-3 ${isBest ? 'text-amber-500 font-medium' : 'text-zinc-300'}`}>
+                        <td key={j} className={`px-4 py-3 ${isBest ? 'text-amber-500 font-medium' : 'text-foreground'}`}>
                           {val}
                         </td>
                       );

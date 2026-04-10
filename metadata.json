@@ -1,5 +1,5 @@
 {
-  "name": "",
-  "description": "",
+  "name": "Grio",
+  "description": "Grio\nNigeria's public discourse, made intelligible.\nGrio is an AI agent built on top of Griot — a real-time Nigerian public data platform. It turns 7,800+ live records from Nigeria's most important media and social sources into intelligence, datasets, visualisations, and interactive analysis on demand.\nThis is not a generic chatbot. Grio knows Nigeria.",
   "requestFramePermissions": []
 }

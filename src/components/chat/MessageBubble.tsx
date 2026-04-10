@@ -1,12 +1,7 @@
 import React, { useState } from 'react';
 import ReactMarkdown from 'react-markdown';
 import { Copy, Check } from 'lucide-react';
-import { ChartRender } from '../renders/ChartRender';
-import { ThreadRender } from '../renders/ThreadRender';
-import { ComparisonRender } from '../renders/ComparisonRender';
-import { TimelineRender } from '../renders/TimelineRender';
-import { LessonRender } from '../renders/LessonRender';
-import { DatasetRender } from '../renders/DatasetRender';
+import { ToolRenderers } from '../../lib/registry';
 
 export function MessageBubble({ message, isLast, activeToolCall }: any) {
   const isUser = message.role === 'user';
@@ -64,7 +59,7 @@ export function MessageBubble({ message, isLast, activeToolCall }: any) {
       )}
       
       {message.content.map((block: any, idx: number) => {
-        if (block.type === 'text') {
+        if (block.type === 'text' && block.text.trim()) {
           return (
             <div key={idx} className="prose prose-zinc dark:prose-invert max-w-none text-[15px] leading-relaxed">
               <ReactMarkdown>{block.text}</ReactMarkdown>
@@ -73,22 +68,10 @@ export function MessageBubble({ message, isLast, activeToolCall }: any) {
         }
         
         if (block.type === 'tool_use') {
-          // Render specific tools inline
-          switch (block.name) {
-            case 'render_chart':
-              return <ChartRender key={idx} data={block.input} />;
-            case 'render_thread':
-              return <ThreadRender key={idx} data={block.input} />;
-            case 'render_comparison':
-              return <ComparisonRender key={idx} data={block.input} />;
-            case 'render_timeline':
-              return <TimelineRender key={idx} data={block.input} />;
-            case 'render_lesson':
-              return <LessonRender key={idx} data={block.input} />;
-            case 'build_dataset':
-              return <DatasetRender key={idx} data={block.input} />;
-            default:
-              return null; // Other tools are background or board updates
+          // Use the decoupled registry to render tools dynamically
+          const Renderer = ToolRenderers[block.name];
+          if (Renderer) {
+            return <Renderer key={idx} data={block.input} />;
           }
         }
         return null;

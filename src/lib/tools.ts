@@ -1,5 +1,27 @@
 export const GRIO_TOOLS = [
   {
+    name: "think",
+    description: "Use this tool to show your thought process to the user before executing complex actions or queries. This helps the user understand your reasoning.",
+    input_schema: {
+      type: "object",
+      required: ["thought"],
+      properties: {
+        thought: { type: "string", description: "Your internal reasoning or plan." }
+      }
+    }
+  },
+  {
+    name: "read_skill",
+    description: "Read the detailed instructions for a specific skill. Use this before executing complex workflows for an active skill.",
+    input_schema: {
+      type: "object",
+      required: ["skill_id"],
+      properties: {
+        skill_id: { type: "string", description: "The ID of the skill to read (e.g., 'dataset_builder', 'market_intelligence')" }
+      }
+    }
+  },
+  {
     name: "query_griot",
     description: "Query the Griot API for records. Always try this first. Never say data is unavailable without querying.",
     input_schema: {
