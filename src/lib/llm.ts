@@ -123,6 +123,7 @@ export async function callLLM({ provider, model, messages, tools, system, apiKey
       },
       body: JSON.stringify({
         model: model || "anthropic/claude-3.5-sonnet",
+        max_tokens: 4096,
         messages: openAiMessages,
         tools: tools.map((t: any) => ({
           type: "function",
@@ -254,10 +255,13 @@ export async function callLLM({ provider, model, messages, tools, system, apiKey
     const toolUses: any[] = [];
 
     for await (const chunk of responseStream) {
-      if (chunk.text) {
-        fullText += chunk.text;
+      // Safely extract text without calling the .text getter which might throw on function calls
+      const textPart = chunk.candidates?.[0]?.content?.parts?.find((p: any) => p.text);
+      if (textPart && textPart.text) {
+        fullText += textPart.text;
         if (onUpdate) onUpdate(fullText);
       }
+      
       if (chunk.functionCalls && chunk.functionCalls.length > 0) {
         for (const fc of chunk.functionCalls) {
           toolUses.push({

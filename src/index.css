@@ -62,4 +62,24 @@
     -ms-overflow-style: none;
     scrollbar-width: none;
   }
+  
+  /* Force prose to use our theme colors so it's always visible in light/dark mode */
+  .prose {
+    --tw-prose-body: var(--fg);
+    --tw-prose-headings: var(--fg);
+    --tw-prose-lead: var(--muted-fg);
+    --tw-prose-links: var(--color-amber-600);
+    --tw-prose-bold: var(--fg);
+    --tw-prose-counters: var(--muted-fg);
+    --tw-prose-bullets: var(--muted-fg);
+    --tw-prose-hr: var(--border);
+    --tw-prose-quotes: var(--fg);
+    --tw-prose-quote-borders: var(--border);
+    --tw-prose-captions: var(--muted-fg);
+    --tw-prose-code: var(--fg);
+    --tw-prose-pre-code: var(--fg);
+    --tw-prose-pre-bg: var(--muted);
+    --tw-prose-th-borders: var(--border);
+    --tw-prose-td-borders: var(--border);
+  }
 }

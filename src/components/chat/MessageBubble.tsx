@@ -40,16 +40,16 @@ export function MessageBubble({ message, isLast, activeToolCall }: any) {
   }
 
   // Extract all text content for the assistant copy button
-  const assistantText = message.content
-    .filter((c: any) => c.type === 'text')
-    .map((c: any) => c.text)
-    .join('\n\n');
+  const textBlocks = message.content.filter((c: any) => c.type === 'text' && c.text.trim());
+  const toolBlocks = message.content.filter((c: any) => c.type === 'tool_use');
 
-  // Find the index of the last board-related tool use in this message
+  const assistantText = textBlocks.map((c: any) => c.text).join('\n\n');
+
+  // Find the index of the last board-related tool use in the toolBlocks array
   // so we only render the final plan state for this message
   let lastBoardToolIdx = -1;
-  message.content.forEach((block: any, idx: number) => {
-    if (block.type === 'tool_use' && (block.name === 'open_board' || block.name === 'update_board')) {
+  toolBlocks.forEach((block: any, idx: number) => {
+    if (block.name === 'open_board' || block.name === 'update_board') {
       lastBoardToolIdx = idx;
     }
   });
@@ -69,26 +69,24 @@ export function MessageBubble({ message, isLast, activeToolCall }: any) {
         </div>
       )}
       
-      {message.content.map((block: any, idx: number) => {
-        if (block.type === 'text' && block.text.trim()) {
-          return (
-            <div key={idx} className="prose dark:prose-invert max-w-none text-[15px] leading-relaxed text-zinc-900 dark:text-zinc-100 prose-p:text-zinc-900 dark:prose-p:text-zinc-100 prose-headings:text-zinc-900 dark:prose-headings:text-zinc-100 prose-strong:text-zinc-900 dark:prose-strong:text-zinc-100 prose-li:text-zinc-900 dark:prose-li:text-zinc-100">
-              <ReactMarkdown remarkPlugins={[remarkGfm]}>{block.text}</ReactMarkdown>
-            </div>
-          );
-        }
-        
-        if (block.type === 'tool_use') {
-          // Skip rendering older board states in the same message
-          if ((block.name === 'open_board' || block.name === 'update_board') && idx !== lastBoardToolIdx) {
-            return null;
-          }
+      {/* Render all text blocks first */}
+      {textBlocks.map((block: any, idx: number) => (
+        <div key={`text-${idx}`} className="prose prose-zinc dark:prose-invert max-w-none text-[15px] leading-relaxed">
+          <ReactMarkdown remarkPlugins={[remarkGfm]}>{block.text}</ReactMarkdown>
+        </div>
+      ))}
 
-          // Use the decoupled registry to render tools dynamically
-          const Renderer = ToolRenderers[block.name];
-          if (Renderer) {
-            return <Renderer key={idx} data={block.input} />;
-          }
+      {/* Render all tool blocks after the text */}
+      {toolBlocks.map((block: any, idx: number) => {
+        // Skip rendering older board states in the same message
+        if ((block.name === 'open_board' || block.name === 'update_board') && idx !== lastBoardToolIdx) {
+          return null;
+        }
+
+        // Use the decoupled registry to render tools dynamically
+        const Renderer = ToolRenderers[block.name];
+        if (Renderer) {
+          return <Renderer key={`tool-${idx}`} data={block.input} />;
         }
         return null;
       })}
