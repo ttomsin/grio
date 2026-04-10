@@ -1,9 +1,27 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { ParticleBackground } from './ParticleBackground';
-import { Search, ArrowRight, Database, TrendingUp, MessageSquare } from 'lucide-react';
+import { Search, ArrowRight, TrendingUp, MessageSquare, Moon, Sun } from 'lucide-react';
+import { WelcomeModal } from './WelcomeModal';
 
 export function LandingPage({ onStart }: { onStart: (query: string) => void }) {
   const [query, setQuery] = useState('');
+  const [isDark, setIsDark] = useState(false);
+
+  useEffect(() => {
+    setIsDark(document.documentElement.classList.contains('dark'));
+  }, []);
+
+  const toggleTheme = () => {
+    const next = !isDark;
+    setIsDark(next);
+    if (next) {
+      document.documentElement.classList.add('dark');
+      localStorage.setItem('theme', 'dark');
+    } else {
+      document.documentElement.classList.remove('dark');
+      localStorage.setItem('theme', 'light');
+    }
+  };
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
@@ -21,6 +39,17 @@ export function LandingPage({ onStart }: { onStart: (query: string) => void }) {
 
   return (
     <div className="relative min-h-screen w-full bg-background flex flex-col items-center justify-center overflow-hidden">
+      <WelcomeModal />
+      
+      {/* Theme Toggle */}
+      <button 
+        onClick={toggleTheme} 
+        className="absolute top-6 right-6 z-50 p-2.5 rounded-full bg-card border border-border text-muted-foreground hover:text-foreground hover:bg-muted transition-colors shadow-sm"
+        aria-label="Toggle theme"
+      >
+        {isDark ? <Sun className="w-5 h-5" /> : <Moon className="w-5 h-5" />}
+      </button>
+
       {/* Futuristic Particle Background */}
       <ParticleBackground />
 
@@ -28,12 +57,17 @@ export function LandingPage({ onStart }: { onStart: (query: string) => void }) {
       <div className="relative z-10 w-full max-w-3xl px-6 flex flex-col items-center text-center">
         
         {/* Logo / Title */}
-        <div className="mb-8 animate-in fade-in slide-in-from-bottom-4 duration-700">
-          <div className="inline-flex items-center justify-center w-16 h-16 rounded-2xl bg-amber-500/10 text-amber-500 mb-6 ring-1 ring-amber-500/20 shadow-[0_0_30px_rgba(245,158,11,0.2)]">
-            <Database className="w-8 h-8" />
-          </div>
-          <h1 className="text-5xl md:text-7xl font-bold tracking-tight text-foreground mb-4">
-            Grio
+        <div className="mb-8 animate-in fade-in slide-in-from-bottom-4 duration-700 flex flex-col items-center">
+          <h1 className="text-6xl md:text-8xl font-bold tracking-tight text-foreground mb-4 flex items-center justify-center">
+            <span className="relative flex items-center justify-center mr-1">
+              <svg viewBox="0 0 48 48" fill="none" xmlns="http://www.w3.org/2000/svg" className="w-16 h-16 md:w-24 md:h-24 text-amber-500 drop-shadow-[0_0_15px_rgba(245,158,11,0.4)]">
+                {/* Vertical Bar (Smaller, centered behind the G) */}
+                <line x1="24" y1="16" x2="24" y2="32" stroke="currentColor" strokeWidth="5" strokeLinecap="round" opacity="0.4" />
+                {/* The G */}
+                <path d="M 34 14 A 14 14 0 1 0 38 24 H 24" stroke="currentColor" strokeWidth="5" strokeLinecap="round" strokeLinejoin="round" />
+              </svg>
+            </span>
+            rio
           </h1>
           <p className="text-lg md:text-xl text-muted-foreground max-w-xl mx-auto leading-relaxed">
             Nigeria's public discourse, made intelligible. Turning thousands of live records into instant intelligence.

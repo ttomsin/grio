@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import './plugins/core'; // Initialize plugins first
 import { Sidebar } from './components/layout/Sidebar';
 import { ChatArea } from './components/layout/ChatArea';
 import { BoardPanel } from './components/layout/BoardPanel';
@@ -28,6 +29,15 @@ export default function App() {
   const { messages, sendMessage, isLoading, activeToolCall } = useAgent(activeSkills, provider, model, apiKeys, setActiveSkillIds);
 
   useEffect(() => {
+    // Theme initialization
+    const savedTheme = localStorage.getItem('theme');
+    const prefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
+    if (savedTheme === 'dark' || (!savedTheme && prefersDark)) {
+      document.documentElement.classList.add('dark');
+    } else {
+      document.documentElement.classList.remove('dark');
+    }
+
     const key = sessionStorage.getItem('griot_key');
     const anthropic = localStorage.getItem('anthropic_key') || '';
     const openrouter = localStorage.getItem('openrouter_key') || '';
