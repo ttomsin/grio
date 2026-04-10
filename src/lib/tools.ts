@@ -161,7 +161,10 @@ export const GRIO_TOOLS = [
       properties: {
         name:        { type: "string" },
         description: { type: "string" },
-        records:     { type: "array" },
+        records:     { 
+          type: "array",
+          description: "Array of records. CRITICAL: To avoid token limits, only include essential fields (e.g., title, url, source, and a VERY SHORT 1-sentence summary). DO NOT include full content."
+        },
         schema:      { type: "array", items: { type: "string" } },
         format:      { type: "string", enum: ["json", "csv", "both"], default: "both" }
       }

@@ -63,12 +63,20 @@ export async function callLLM({ provider, model, messages, tools, system, apiKey
     const content = [];
     if (fullText) content.push({ type: 'text', text: fullText });
     for (const tu of toolUses) {
-      content.push({
-        type: 'tool_use',
-        id: tu.id,
-        name: tu.name,
-        input: JSON.parse(tu.inputStr || '{}')
-      });
+      try {
+        content.push({
+          type: 'tool_use',
+          id: tu.id,
+          name: tu.name,
+          input: JSON.parse(tu.inputStr || '{}')
+        });
+      } catch (e: any) {
+        console.error(`Failed to parse JSON for tool ${tu.name}:`, tu.inputStr);
+        content.push({
+          type: 'text',
+          text: `\n\n[System Error: The AI attempted to use the tool '${tu.name}' but generated invalid or incomplete JSON parameters. This usually happens if the response was too long and got cut off.]`
+        });
+      }
     }
     return content;
   } 
@@ -184,12 +192,20 @@ export async function callLLM({ provider, model, messages, tools, system, apiKey
     const content = [];
     if (fullText) content.push({ type: 'text', text: fullText });
     for (const tu of toolUses) {
-      content.push({
-        type: 'tool_use',
-        id: tu.id,
-        name: tu.name,
-        input: JSON.parse(tu.inputStr || '{}')
-      });
+      try {
+        content.push({
+          type: 'tool_use',
+          id: tu.id,
+          name: tu.name,
+          input: JSON.parse(tu.inputStr || '{}')
+        });
+      } catch (e: any) {
+        console.error(`Failed to parse JSON for tool ${tu.name}:`, tu.inputStr);
+        content.push({
+          type: 'text',
+          text: `\n\n[System Error: The AI attempted to use the tool '${tu.name}' but generated invalid or incomplete JSON parameters. This usually happens if the response was too long and got cut off.]`
+        });
+      }
     }
     return content;
   }
