@@ -209,5 +209,25 @@ export const GRIO_TOOLS = [
         }
       }
     }
+  },
+  {
+    name: "render_table",
+    description: "Render a beautiful, structured data table. Use this instead of markdown tables for complex data, real estate prices, or structured lists.",
+    input_schema: {
+      type: "object",
+      required: ["columns", "rows"],
+      properties: {
+        title: { type: "string", description: "Optional title for the table" },
+        columns: { type: "array", items: { type: "string" }, description: "Array of column headers" },
+        rows: { 
+          type: "array", 
+          items: { 
+            type: "array",
+            items: { type: "string" }
+          },
+          description: "Array of rows, where each row is an array of strings matching the columns"
+        }
+      }
+    }
   }
 ];

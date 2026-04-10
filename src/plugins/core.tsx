@@ -11,6 +11,7 @@ import { LessonRender } from '../components/renders/LessonRender';
 import { DatasetRender } from '../components/renders/DatasetRender';
 import { ThinkRender } from '../components/renders/ThinkRender';
 import { PlanRender } from '../components/renders/PlanRender';
+import { TableRender } from '../components/renders/TableRender';
 
 // ---------------------------------------------------------
 // 1. Register UI Renderers
@@ -24,6 +25,7 @@ registerRenderer('build_dataset', DatasetRender);
 registerRenderer('think', ThinkRender);
 registerRenderer('open_board', PlanRender);
 registerRenderer('update_board', (props) => <PlanRender {...props} isUpdate={true} />);
+registerRenderer('render_table', TableRender);
 
 // ---------------------------------------------------------
 // 2. Register Tool Executors
@@ -73,7 +75,8 @@ const uiTools = [
   'render_timeline', 
   'render_lesson', 
   'build_dataset', 
-  'think'
+  'think',
+  'render_table'
 ];
 
 uiTools.forEach(tool => {

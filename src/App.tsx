@@ -2,7 +2,6 @@ import React, { useState, useEffect } from 'react';
 import './plugins/core'; // Initialize plugins first
 import { Sidebar } from './components/layout/Sidebar';
 import { ChatArea } from './components/layout/ChatArea';
-import { BoardPanel } from './components/layout/BoardPanel';
 import { LandingPage } from './components/layout/LandingPage';
 import { useAgent } from './hooks/useAgent';
 import { SKILL_REGISTRY } from './lib/skills';
@@ -186,8 +185,6 @@ export default function App() {
         activeToolCall={activeToolCall}
         activeSkills={activeSkills}
       />
-      
-      <BoardPanel />
 
       <Dialog open={showSettingsDialog} onOpenChange={setShowSettingsDialog}>
         <DialogContent className="sm:max-w-md bg-card border-border text-foreground">
