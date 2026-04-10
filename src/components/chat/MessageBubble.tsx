@@ -13,6 +13,7 @@ export function MessageBubble({ message, isLast, activeToolCall }: any) {
     setCopied(true);
     setTimeout(() => setCopied(false), 2000);
   };
+  
 
   if (isUser) {
     // User messages just have text content
