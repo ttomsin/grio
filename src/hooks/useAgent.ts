@@ -5,6 +5,7 @@ import { useGriot } from './useGriot';
 import { useBoard } from './useBoard';
 import { callLLM } from '../lib/llm';
 import { ToolExecutors } from '../lib/registry';
+import { runOllamaPipeline } from '../lib/ollamaPipeline';
 
 export type Message = {
   role: 'user' | 'assistant';
@@ -39,6 +40,62 @@ export function useAgent(activeSkills: any[], provider: string, model: string, a
   };
 
   const runAgentLoop = async (currentMessages: Message[]) => {
+    if (provider === 'ollama') {
+      const content = await runOllamaPipeline({
+        apiKeys,
+        model,
+        queryGriot,
+        messages: currentMessages,
+        onUpdate: (text: string) => {
+          setMessages((prev) => {
+            const next = [...prev];
+            if (next.length === currentMessages.length) {
+              next.push({ role: 'assistant', content: [{ type: 'text', text }] });
+            } else {
+              next[next.length - 1] = { role: 'assistant', content: [{ type: 'text', text }] };
+            }
+            return next;
+          });
+        },
+        onToolUpdate: (toolName: string) => {
+          setActiveToolCall(`Running ${toolName}...`);
+        }
+      });
+
+      // Add the final content blocks (text + potential viz tool)
+      setMessages((prev) => {
+        const next = [...prev];
+        if (next.length === currentMessages.length) {
+          next.push({ role: 'assistant', content });
+        } else {
+          next[next.length - 1] = { role: 'assistant', content };
+        }
+        return next;
+      });
+
+      // If there are tool uses (viz), we need to execute them to render the UI
+      const toolUses = content.filter((c: any) => c.type === 'tool_use');
+      if (toolUses.length > 0) {
+        const toolResults = [];
+        for (const toolUse of toolUses) {
+          setActiveToolCall(toolUse.name);
+          let result;
+          try {
+            result = await executeTool(toolUse.name, toolUse.input);
+          } catch (e: any) {
+            result = { error: e.message };
+          }
+          toolResults.push({
+            type: 'tool_result',
+            tool_use_id: toolUse.id,
+            content: typeof result === 'string' ? result : JSON.stringify(result)
+          });
+        }
+        setMessages((prev) => [...prev, { role: 'user', content: toolResults }]);
+      }
+      return;
+    }
+
     let loopMessages = [...currentMessages];
     
     while (true) {

@@ -5,11 +5,18 @@ export function useGriot() {
       throw new Error("Griot API key missing");
     }
 
-    const url = new URL("https://api.griot.ng/api/v1/records");
+    const baseUrl = (import.meta as any).env.VITE_GRIOT_API_URL || "https://api.griot.ng";
+    
+    let path = "/api/v1/records";
+    if (params.search_type === 'semantic') {
+      path = "/api/v1/records/semantic";
+    }
+
+    const url = new URL(`${baseUrl}${path}`);
     
     // Add params to URL
     Object.keys(params).forEach(k => {
-      if (params[k] !== undefined && params[k] !== null) {
+      if (params[k] !== undefined && params[k] !== null && k !== 'search_type') {
         const paramName = k === 'page_size' ? 'limit' : k;
         url.searchParams.append(paramName, params[k].toString());
       }

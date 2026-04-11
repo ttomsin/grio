@@ -18,7 +18,8 @@ export default function App() {
   const [apiKeys, setApiKeys] = useState({
     griot: '',
     anthropic: '',
-    openrouter: ''
+    openrouter: '',
+    ollamaUrl: 'http://localhost:11434'
   });
   
   const [provider, setProvider] = useState('anthropic');
@@ -40,13 +41,15 @@ export default function App() {
     const key = sessionStorage.getItem('griot_key');
     const anthropic = localStorage.getItem('anthropic_key') || '';
     const openrouter = localStorage.getItem('openrouter_key') || '';
+    const ollamaUrl = localStorage.getItem('ollama_url') || 'http://localhost:11434';
     const savedProvider = localStorage.getItem('llm_provider') || 'anthropic';
     const savedModel = localStorage.getItem('llm_model') || 'claude-3-7-sonnet-20250219';
     
     setApiKeys({
       griot: key || '',
       anthropic,
-      openrouter
+      openrouter,
+      ollamaUrl
     });
     setProvider(savedProvider);
     setModel(savedModel);
@@ -65,6 +68,7 @@ export default function App() {
     }
     localStorage.setItem('anthropic_key', apiKeys.anthropic.trim());
     localStorage.setItem('openrouter_key', apiKeys.openrouter.trim());
+    localStorage.setItem('ollama_url', apiKeys.ollamaUrl.trim());
     localStorage.setItem('llm_provider', provider);
     localStorage.setItem('llm_model', model);
     
@@ -114,11 +118,13 @@ export default function App() {
                     if (e.target.value === 'anthropic') setModel('claude-3-7-sonnet-20250219');
                     if (e.target.value === 'gemini') setModel('gemini-2.5-pro');
                     if (e.target.value === 'openrouter') setModel('anthropic/claude-3.5-sonnet');
+                    if (e.target.value === 'ollama') setModel('gemma3:4b');
                   }}
                 >
                   <option value="anthropic">Anthropic</option>
                   <option value="gemini">Gemini (AI Studio)</option>
                   <option value="openrouter">OpenRouter</option>
+                  <option value="ollama">Ollama (Local)</option>
                 </select>
               </div>
 
@@ -150,6 +156,19 @@ export default function App() {
                     value={apiKeys.openrouter}
                     onChange={(e) => setApiKeys({...apiKeys, openrouter: e.target.value})}
                   />
+                </div>
+              )}
+
+              {provider === 'ollama' && (
+                <div className="space-y-2">
+                  <label className="text-sm font-medium">Ollama URL</label>
+                  <Input
+                    type="text"
+                    value={apiKeys.ollamaUrl}
+                    onChange={(e) => setApiKeys({...apiKeys, ollamaUrl: e.target.value})}
+                    placeholder="http://localhost:11434"
+                  />
+                  <p className="text-xs text-muted-foreground">Make sure Ollama is running locally and CORS is configured.</p>
                 </div>
               )}
               
@@ -215,11 +234,13 @@ export default function App() {
                   if (e.target.value === 'anthropic') setModel('claude-3-7-sonnet-20250219');
                   if (e.target.value === 'gemini') setModel('gemini-2.5-pro');
                   if (e.target.value === 'openrouter') setModel('anthropic/claude-3.5-sonnet');
+                  if (e.target.value === 'ollama') setModel('gemma3:4b');
                 }}
               >
                 <option value="anthropic">Anthropic</option>
                 <option value="gemini">Gemini (AI Studio)</option>
                 <option value="openrouter">OpenRouter</option>
+                <option value="ollama">Ollama (Local)</option>
               </select>
             </div>
 
@@ -251,6 +272,19 @@ export default function App() {
                   value={apiKeys.openrouter}
                   onChange={(e) => setApiKeys({...apiKeys, openrouter: e.target.value})}
                 />
+              </div>
+            )}
+
+            {provider === 'ollama' && (
+              <div className="space-y-2">
+                <label className="text-sm font-medium">Ollama URL</label>
+                <Input
+                  type="text"
+                  value={apiKeys.ollamaUrl}
+                  onChange={(e) => setApiKeys({...apiKeys, ollamaUrl: e.target.value})}
+                  placeholder="http://localhost:11434"
+                />
+                <p className="text-xs text-muted-foreground">Make sure Ollama is running locally and CORS is configured.</p>
               </div>
             )}
             
